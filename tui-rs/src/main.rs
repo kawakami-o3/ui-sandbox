@@ -6,21 +6,31 @@ use tui::backend::TermionBackend;
 use tui::widgets::{Widget, Block, Borders};
 use tui::layout::{Layout, Constraint, Direction};
 
-fn main() {
+struct App {
 
-    let stdout = io::stdout().into_raw_mode().unwrap();
-    let backend = TermionBackend::new(stdout);
-    let mut terminal = Terminal::new(backend).unwrap();
+    //terminal: Terminal<tui::backend::TermionBackend>
+    terminal: Terminal<TermionBackend<termion::raw::RawTerminal<io::Stdout>>>,
+    //terminal: Terminal<TermionBackend<io::Stdout>>,
+}
 
-    terminal.clear().unwrap();
+impl App {
+    fn new() -> App {
 
-    let stdin = io::stdin();
-    let stdin = stdin.lock();
-    let mut bytes = stdin.bytes();
+        let stdout = io::stdout().into_raw_mode().unwrap();
+        let backend = TermionBackend::new(stdout);
+        let terminal = Terminal::new(backend).unwrap();
 
-    loop {
+        App {
+            terminal
+        }
+    }
 
-        terminal.draw(|f| {
+    fn clear(&mut self) -> io::Result<()> {
+        self.terminal.clear()
+    }
+
+    fn draw(&mut self) -> io::Result<()> {
+        self.terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 //.margin(1)
@@ -43,7 +53,22 @@ fn main() {
                 .borders(Borders::ALL);
 
             f.render_widget(block, chunks[1]);
-        }).unwrap();
+        })
+    }
+}
+
+fn main() {
+
+    let mut app = App::new();
+
+    app.clear().unwrap();
+
+    let stdin = io::stdin();
+    let stdin = stdin.lock();
+    let mut bytes = stdin.bytes();
+
+    loop {
+        app.draw().unwrap();
 
         let b = bytes.next().unwrap().unwrap();
         match b {
