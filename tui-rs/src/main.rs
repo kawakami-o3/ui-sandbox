@@ -1,16 +1,15 @@
 use std::io;
-use std::io::{stdin, stdout, Read, Write};
+use std::io::Read;
 use termion::raw::IntoRawMode;
 use tui::Terminal;
 use tui::backend::TermionBackend;
-use tui::widgets::{Widget, Block, Borders};
+use tui::widgets::{Block, Borders};
 use tui::layout::{Layout, Constraint, Direction};
 
 struct App {
-
-    //terminal: Terminal<tui::backend::TermionBackend>
     terminal: Terminal<TermionBackend<termion::raw::RawTerminal<io::Stdout>>>,
-    //terminal: Terminal<TermionBackend<io::Stdout>>,
+
+    h: u16,
 }
 
 impl App {
@@ -21,7 +20,9 @@ impl App {
         let terminal = Terminal::new(backend).unwrap();
 
         App {
-            terminal
+            terminal,
+
+            h: 10,
         }
     }
 
@@ -30,15 +31,17 @@ impl App {
     }
 
     fn draw(&mut self) -> io::Result<()> {
+        let h = self.h;
+
         self.terminal.draw(|f| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 //.margin(1)
                 .constraints(
                     [
-                    Constraint::Percentage(10),
-                    Constraint::Percentage(80),
-                    Constraint::Percentage(10)
+                    Constraint::Percentage(h),
+                    Constraint::Percentage(100 - h),
+                    //Constraint::Percentage(10)
                     ].as_ref()
                 ).split(f.size());
 
@@ -75,8 +78,17 @@ fn main() {
             b'q' => {
                 break;
             }
+            b'j' => {
+                app.h = u16::min(90, app.h + 10);
+            }
+            b'k' => {
+                app.h = u16::max(10, app.h - 10);
+                //app.h -= 1;
+            }
             _ => { }
         }
     }
+
+    app.clear().unwrap();
 
 }
