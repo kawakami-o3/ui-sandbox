@@ -5,6 +5,8 @@ use tui::Terminal;
 use tui::backend::TermionBackend;
 use tui::widgets::{Block, Borders};
 use tui::layout::{Layout, Constraint, Direction};
+use tui::widgets::canvas::Canvas;
+use tui::style::Color;
 
 struct App {
     terminal: Terminal<TermionBackend<termion::raw::RawTerminal<io::Stdout>>>,
@@ -31,16 +33,16 @@ impl App {
     }
 
     fn draw(&mut self) -> io::Result<()> {
-        let h = self.h;
 
         self.terminal.draw(|f| {
+
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 //.margin(1)
                 .constraints(
                     [
-                    Constraint::Percentage(h),
-                    Constraint::Percentage(100 - h),
+                    Constraint::Percentage(70),
+                    Constraint::Percentage(30),
                     //Constraint::Percentage(10)
                     ].as_ref()
                 ).split(f.size());
@@ -49,7 +51,26 @@ impl App {
                 .title("Block")
                 .borders(Borders::ALL);
 
-            f.render_widget(block, chunks[0]);
+//            let canvas = Canvas::default()
+//                .block(block)
+//                .paint(|ctx| {
+//                    ctx.print(0.0, 0.0, "hello", Color::White);
+//                });
+                //.x_bounds([-1.0,1.0]).y_bounds([-1.0,1.0]);
+
+            let canvas = Canvas::default()
+                .block(block)
+                .paint(|ctx| {
+                    ctx.print(0.0, 0.0, "0", Color::White);
+                    ctx.print(1.0, 1.0, "1", Color::White);
+                    ctx.print(1.0, 3.0, "2", Color::White);
+                })
+                .x_bounds([0.0,5.0])
+                .y_bounds([0.0,5.0]);
+
+
+            //f.render_widget(block, chunks[0]);
+            f.render_widget(canvas, chunks[0]);
 
             let block = Block::default()
                 .title("Block 2")
